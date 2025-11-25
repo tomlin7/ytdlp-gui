@@ -1,20 +1,22 @@
-[project]
+[tool.poetry]
 name = "ytdlp-gui"
-version = "1.0.0"
-description = "A beautiful GUI for YT-DLP using Flet"
+version = "1.1.0"
+description = ""
+authors = ["Billy <billydevbusiness@gmail.com>"]
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.12.5"
-dependencies = [
-    "flet[all]>=0.27.6",
-    "yt-dlp>=2025.3.31",
-]
+packages = [{ include = "ytdlpg", from = "src" }]
 
-[project.scripts]
+[tool.poetry.dependencies]
+python = "^3.12"
+yt-dlp = "^2025.11.12"
+flet = {extras = ["all"], version = "^0.28.3"}
+
+
+[tool.poetry.scripts]
 ytdlpg = "ytdlpg.main:python_main"
+ytg = "ytdlpg.main:python_main"
 
 [build-system]
-requires = ["setuptools>=79.0.1"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["src"]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

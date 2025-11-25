@@ -325,16 +325,17 @@ def main(page: ft.Page):
         read_only=True,
     )
 
-    def pick_directory(e):
-        def on_dialog_result(e):
-            if e.data:
-                output_path_field.value = e.data
-                download_manager.options.output_path = e.data
-                page.update()
+    def on_directory_result(e: ft.FilePickerResultEvent):
+        if e.path:
+            output_path_field.value = e.path
+            download_manager.options.output_path = e.path
+            page.update()
 
-        page.launch_file_picker(
-            on_result=on_dialog_result,
-            directory=True,
+    directory_picker = ft.FilePicker(on_result=on_directory_result)
+    page.overlay.append(directory_picker)
+
+    def pick_directory(e):
+        directory_picker.get_directory_path(
             initial_directory=download_manager.options.output_path,
         )
 
@@ -458,47 +459,49 @@ def main(page: ft.Page):
         on_click=export_settings,
     )
 
+    def on_import_settings_result(e: ft.FilePickerResultEvent):
+        if e.files:
+            file_path = e.files[0].path
+            try:
+                with open(file_path, "r") as f:
+                    settings = json.load(f)
+
+                for key, value in settings.items():
+                    if hasattr(download_manager.options, key):
+                        setattr(download_manager.options, key, value)
+
+                format_dropdown.value = download_manager.options.format
+                output_path_field.value = download_manager.options.output_path
+                extract_audio_switch.value = download_manager.options.extract_audio
+                audio_format_dropdown.value = download_manager.options.audio_format
+                audio_quality_dropdown.value = (
+                    download_manager.options.audio_quality
+                )
+                playlist_switch.value = download_manager.options.playlist
+                subtitles_switch.value = download_manager.options.subtitles
+                subtitle_lang_dropdown.value = (
+                    download_manager.options.subtitle_lang
+                )
+                thumbnail_switch.value = download_manager.options.thumbnail
+                verbose_switch.value = download_manager.options.verbose
+
+                audio_format_dropdown.disabled = not extract_audio_switch.value
+                audio_quality_dropdown.disabled = not extract_audio_switch.value
+                subtitle_lang_dropdown.disabled = not subtitles_switch.value
+
+                status_text.value = "Settings imported successfully"
+                status_text.color = ft.Colors.GREEN
+                page.update()
+            except Exception as e:
+                status_text.value = f"Error importing settings: {str(e)}"
+                status_text.color = ft.Colors.RED
+                page.update()
+
+    import_settings_picker = ft.FilePicker(on_result=on_import_settings_result)
+    page.overlay.append(import_settings_picker)
+
     def import_settings(e):
-        def on_dialog_result(e):
-            if e.data:
-                file_path = e.data[0]
-                try:
-                    with open(file_path, "r") as f:
-                        settings = json.load(f)
-
-                    for key, value in settings.items():
-                        if hasattr(download_manager.options, key):
-                            setattr(download_manager.options, key, value)
-
-                    format_dropdown.value = download_manager.options.format
-                    output_path_field.value = download_manager.options.output_path
-                    extract_audio_switch.value = download_manager.options.extract_audio
-                    audio_format_dropdown.value = download_manager.options.audio_format
-                    audio_quality_dropdown.value = (
-                        download_manager.options.audio_quality
-                    )
-                    playlist_switch.value = download_manager.options.playlist
-                    subtitles_switch.value = download_manager.options.subtitles
-                    subtitle_lang_dropdown.value = (
-                        download_manager.options.subtitle_lang
-                    )
-                    thumbnail_switch.value = download_manager.options.thumbnail
-                    verbose_switch.value = download_manager.options.verbose
-
-                    audio_format_dropdown.disabled = not extract_audio_switch.value
-                    audio_quality_dropdown.disabled = not extract_audio_switch.value
-                    subtitle_lang_dropdown.disabled = not subtitles_switch.value
-
-                    status_text.value = "Settings imported successfully"
-                    status_text.color = ft.Colors.GREEN
-                    page.update()
-                except Exception as e:
-                    status_text.value = f"Error importing settings: {str(e)}"
-                    status_text.color = ft.Colors.RED
-                    page.update()
-
-        page.launch_file_picker(
-            on_result=on_dialog_result,
+        import_settings_picker.pick_files(
             allowed_extensions=["json"],
             file_type=ft.FilePickerFileType.CUSTOM,
             allow_multiple=False,
@@ -537,7 +540,7 @@ def main(page: ft.Page):
                         )
                     ]
                 ),
-                ft.Text("Version 1.0.0"),
+                ft.Text("Version 1.1.0"),
                 ft.Text("yt-dlp version: " + yt_dlp.version.__version__),
             ],
             tight=True,
