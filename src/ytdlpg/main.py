@@ -540,7 +540,7 @@ def main(page: ft.Page):
                         )
                     ]
                 ),
-                ft.Text("Version 1.1.0"),
+                ft.Text("Version 1.1.1"),
                 ft.Text("yt-dlp version: " + yt_dlp.version.__version__),
             ],
             tight=True,
